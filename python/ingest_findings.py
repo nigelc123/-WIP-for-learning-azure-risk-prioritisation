@@ -15,7 +15,7 @@ COL_CHECK_ID = "CHECK_ID"
 COL_CHECK_TITLE = "CHECK_TITLE"
 
 
-# Find the latest csv file in the Prowler Output directory set in the config file.
+# Find the latest csv file in the Prowler Output directory set in the config file. Returns a reference to a csv file.
 def find_latest_csv():
     # Set output_dir as PROWLER_OUTPUT_DIR imported from config.
     output_dir = Path(PROWLER_OUTPUT_DIR)
@@ -28,13 +28,20 @@ def find_latest_csv():
         raise FileNotFoundError(
             f"No Prowler CSV output found in {output_dir} - run scripts/run_prowler.sh first."
         )
+
+    # Otherwise, return the first csv file in the sorted list.
     return csv_files[0]
 
+# Function to open and read the file, requires a csv_path as a parameter.
 def load_prowler_findings(csv_path):
+
+    # Open the csv_path, encoding as utf-8-sig. Use csv.DictReader to read the file, with ';' as the delimiter based on reviewing Prowler output.
     with open(csv_path, newline="", encoding="utf-8-sig") as f:
         reader = csv.DictReader(f,delimiter=";") # Prowler's output is semi-colon delimited.
         return [row for row in reader]
 
+# NOTE: Claude wrote this function, with some troubleshooting and edge cases provided by me to shore up the logic. Prior to fixing up the code, there were some scenarios where assets 
+# were not properly showing up due to differences in how Azure tracks some security settings.
 def find_parent_asset(resource_id, tracked_assets):
     """Walk up an ARM resource path to the nearest tracked ancestor asset.
 
@@ -62,7 +69,8 @@ def find_parent_asset(resource_id, tracked_assets):
             return candidate
     return None
 
-
+# NOTE: Claude wrote this function.
+# Insert findings into the database row by row.
 def upsert_findings(rows):
     conn = get_connection()
     now = datetime.now(timezone.utc).isoformat()

@@ -13,9 +13,10 @@ echo "Note, you will be prompted to enter the project name."
 read -rp "Type 'destroy' to confirm that you want to destroy resources." CONFIRM
 
 # If the user types anything other than 'destroy', abort.
-if [ "$CONFIRM" != 'destroy ']; then
+if [[ "$CONFIRM" != 'destroy' ]]; then
     echo "Aborted. No resources will be destroyed."
+    exit 1
+else 
+    # Run terraform destroy to begin the process of destroying resources.
+    terraform destroy -auto-approve
 fi
-
-# Run terraform destroy to begin the process of destroying resources.
-terraform destroy -auto-approve

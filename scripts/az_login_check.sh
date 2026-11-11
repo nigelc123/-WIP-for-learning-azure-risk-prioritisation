@@ -12,15 +12,19 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 SECRETS_FILE="$SCRIPT_DIR/secrets/prowler.env"
 
 # If service principal credentials aren't already in the environment, pick them up from secrets/prowler.env -
-# this reuses the same SP creds Prowler uses so az login can authenticate non-interactively (e.g. over SSH).
+# this reuses the same SP creds Prowler uses so az login can authenticate non-interactively (e.g. over SSH), or as part of automation.
 if [[ -z "${AZURE_CLIENT_ID:-}" && -f "$SECRETS_FILE" ]]; then
-    set -a
+    set -a # Set auto-export of variables. Exports variables read by sourcing $SECRETS_FILE, so child processes can read them.
     # shellcheck disable=SC1090
+    # Sourcring this file reads the contents of the file, and runs it as commands as if typed into the terminal.
+    # Note, since this runs the contents as commands it is important that the file is trusted. For example, if malicious code was present in the .env file
+    # this would also run.
     source "$SECRETS_FILE"
-    set +a
+    set +a # Disable auto-export, as we only want it for sourcing the file above.
 fi
 
-# Retrieves the expected subscription ID if set, if it is not set, EXPECTED_SUB will be an empty string.
+# Sets the value of EXPECTED_SUB to $AZURE_SUBSCRIPTION_ID (from the .env file sourced above) if it exists.
+# If it doesn't exist, EXPECTED_SUB has a null value.
 EXPECTED_SUB="${AZURE_SUBSCRIPTION_ID:-}"
 
 # If az cli is not logged in, authenticate.
@@ -53,7 +57,11 @@ echo "Active subscription: ${CURRENT_NAME} (${CURRENT_SUB})"
 if [ -n "$EXPECTED_SUB" ] && [ "$CURRENT_SUB" != "$EXPECTED_SUB" ]; then
     echo "WARNING: active subscription does not match AZURE_SUBSCRIPTION_ID"
     echo "Running: az account set --subscription ${EXPECTED_SUB}"
-    az account set --subscription "$EXPECTED_SUB"
-fi
 
-echo "OK - subscription is correct."
+    # If this command runs successfully, print success message. Otherwise, potentially the user is not logged into the right tenancy or doesn't have access to the subscription required.
+    if az account set --subscription "$EXPECTED_SUB"; then
+        echo "Ok - Subscription is correct."
+    else
+        echo "ERROR: Cannot set subscription to the expected subscription. Please log into the correct account and verify your access permissions."
+    fi
+fi

@@ -1,6 +1,6 @@
-#/bin/env/bash
+#!/usr/bin/env/bash
 
-# Sets bash strict mode, so the script fails with exit code 0 if an error occurs.
+# Sets bash strict mode, so the script fails with non-zero exit code if an error occurs.
 set -euo pipefail
 
 # Creates a subshell to evaluate and print the directory that the script is running from - despite how the script is invoked.
@@ -50,6 +50,7 @@ SUB_ID=$(az account show --query id | tr -d '"')
 RG_NAME="$(cd "$(dirname "${BASH_SOURCE[0]}")/../terraform" && terraform output -raw resource-group-name)"
 
 # Run Prowler on the Azure tenant with Service Principal auth (which will use the environment variables)
-prowler azure --sp-env-auth --subscription-ids $SUB_ID --azure-resource-group $RG_NAME --output-formats csv --output-directory "$OUTPUT_DIR"
+# The last flag ignores exit code 3, which is the result of a failed check. This was causing the run_daily.sh script to flag as a failed run regardless, therefore not running subsequent scripts.
+prowler azure --sp-env-auth --subscription-ids $SUB_ID --azure-resource-group $RG_NAME --output-formats csv --output-directory "$OUTPUT_DIR" --ignore-exit-code-3 --no-banner
 
 echo "Prowler scan complete."

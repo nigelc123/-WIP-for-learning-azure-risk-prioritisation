@@ -5,7 +5,7 @@ set -euo pipefail # Set bash to strict mode.
 # The intent is for the run to be triggered by cron.
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-cd $SCRIPT_DIR
+cd "$SCRIPT_DIR"
 
 LOG_DIR="$SCRIPT_DIR/logs"
 mkdir -p "$LOG_DIR"
@@ -38,10 +38,10 @@ run_bash_step() {
     local step_name="$1"
     local script_path="$2"
 
-     # If the bash script runs successfully, print OK and log this.
+    # If the bash script runs successfully, print OK and log this.
     echo "--- ${step_name} ---" | tee -a "$LOG_FILE"
     if bash "$script_path" >> "$LOG_FILE" 2>&1; then
-        echo "${step_name}: OK" | tee -a "$LOG_FILE"
+       echo "${step_name}: OK" | tee -a "$LOG_FILE"
     else  
     # Or else, print that it failed and log this.
         echo "${step_name}: FAILED - see $LOG_FILE" | tee -a "$LOG_FILE"

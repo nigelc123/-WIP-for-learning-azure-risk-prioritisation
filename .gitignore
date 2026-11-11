@@ -24,3 +24,4 @@ python/__pycache__/
 
 # Notes on the project that I only want saved locally
 INGESTION_HARDENING.md
+architecture_review.md
