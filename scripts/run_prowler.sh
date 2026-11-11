@@ -1,4 +1,4 @@
-#!/usr/bin/env/bash
+#!/usr/bin/env bash
 
 # Sets bash strict mode, so the script fails with non-zero exit code if an error occurs.
 set -euo pipefail

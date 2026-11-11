@@ -16,7 +16,8 @@ SECRETS_FILE="$SCRIPT_DIR/secrets/prowler.env"
 if [[ -z "${AZURE_CLIENT_ID:-}" && -f "$SECRETS_FILE" ]]; then
     set -a # Set auto-export of variables. Exports variables read by sourcing $SECRETS_FILE, so child processes can read them.
     # shellcheck disable=SC1090
-    # Sourcring this file reads the contents of the file, and runs it as commands as if typed into the terminal.
+    
+    # Sourcing this file reads the contents of the file, and runs it as commands as if typed into the terminal.
     # Note, since this runs the contents as commands it is important that the file is trusted. For example, if malicious code was present in the .env file
     # this would also run.
     source "$SECRETS_FILE"
@@ -63,5 +64,6 @@ if [ -n "$EXPECTED_SUB" ] && [ "$CURRENT_SUB" != "$EXPECTED_SUB" ]; then
         echo "Ok - Subscription is correct."
     else
         echo "ERROR: Cannot set subscription to the expected subscription. Please log into the correct account and verify your access permissions."
+        exit 1
     fi
 fi
